@@ -11,6 +11,11 @@ def main(page: ft.Page):
         {'title': 'Estudar Flet', 'done': False},
     ]
     
+    def delete_habit(e, habit_title):
+        global habits_list  # Referencia a lista de hábitos global
+        habits_list = [hl for hl in habits_list if hl['title'] != habit_title]  # Remove o hábito
+        refresh_habits_ui()  # Atualiza a UI para refletir a mudança
+    
     
     def edit_habit(e, habit_title):
         # Encontra o hábito que está sendo editado.
@@ -48,7 +53,12 @@ def main(page: ft.Page):
                         icon=ft.icons.EDIT,
                         icon_color=ft.colors.BLACK,
                         on_click=lambda e, hl=hl: edit_habit(e, hl['title'])
-                    )
+                    ),
+                    ft.IconButton(
+                        icon=ft.icons.DELETE,
+                        icon_color=ft.colors.BLACK,
+                        on_click=lambda e, hl=hl['title']: delete_habit(e, hl)
+                    ) 
                 ]
             ) for hl in habits_list
         ]
@@ -83,6 +93,11 @@ def main(page: ft.Page):
                         icon_color=ft.colors.BLACK,
                         on_click=lambda e, hl=hl: 
                             edit_habit(e, hl['title'])
+                    ),
+                    ft.IconButton(
+                        icon=ft.icons.DELETE,
+                        icon_color=ft.colors.BLACK,
+                        on_click=lambda e, hl=hl['title']: delete_habit(e, hl)
                     )    
                 ]
             )for hl in habits_list
@@ -145,6 +160,11 @@ def main(page: ft.Page):
                                     icon=ft.icons.EDIT,
                                     icon_color=ft.colors.BLACK,
                                     on_click=lambda e, hl=hl: edit_habit(e, hl['title'])
+                                ),
+                                ft.IconButton(
+                                    icon=ft.icons.DELETE,
+                                    icon_color=ft.colors.BLACK,
+                                    on_click=lambda e, hl=hl['title']: delete_habit(e, hl)
                                 )    
                             ]
                         )for hl in habits_list
