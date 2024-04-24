@@ -12,9 +12,10 @@ def main(page: ft.Page):
     ]
     
     def delete_habit(e, habit_title):
-        global habits_list  # Referencia a lista de hábitos global
-        habits_list = [hl for hl in habits_list if hl['title'] != habit_title]  # Remove o hábito
-        refresh_habits_ui()  # Atualiza a UI para refletir a mudança
+        habit = next((hl for hl in habits_list if hl['title'] == habit_title), None)
+        if habit:
+            habits_list.remove(habit)
+            refresh_habits_ui()
     
     
     def edit_habit(e, habit_title):
