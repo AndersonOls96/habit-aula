@@ -4,6 +4,9 @@ import flet as ft
 def main(page: ft.Page):
     page.bgcolor = ft.colors.BLACK
     page.padding = ft.padding.all(30)
+    page.window_resizable = False
+    page.window_height = 960
+    page.window_width = 600
 
     habits_list = [
         {'title': 'Estudar inglês', 'done': False},
