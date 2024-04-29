@@ -1,5 +1,36 @@
-# https://www.behance.net/gallery/177853723/Habbio-Habit-tracker-app?tracking_source=search_projects&l=21
 import flet as ft
+import sqlite3
+
+def init_db():
+    conn = sqlite3.connect('habits.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS habits (
+            id INTEGER PRIMARY KEY,
+            title TEXT NOT NULL,
+            done BOOLEAN NOT NULL CHECK (done IN (0, 1))
+        )
+    ''')
+    conn.commit()
+    conn.close()
+    
+def fetch_habits():
+    # Conectar ao banco de dados
+    conn = sqlite3.connect('habits.db')
+    cursor = conn.cursor()
+    
+    # Executar a consulta SQL
+    cursor.execute('SELECT id, title, done FROM habits')
+    
+    # Buscar todos os resultados
+    habits_list = cursor.fetchall()
+    
+    # Fechar a conexão com o banco de dados
+    conn.close()
+    
+    # Retornar os resultados
+    return habits_list
+    
 
 def main(page: ft.Page):
     page.bgcolor = ft.colors.BLACK
@@ -7,12 +38,10 @@ def main(page: ft.Page):
     page.window_resizable = False
     page.window_height = 960
     page.window_width = 600
+    
+    init_db()
 
-    habits_list = [
-        {'title': 'Estudar inglês', 'done': False},
-        {'title': 'Praticar violão', 'done': False},
-        {'title': 'Estudar Flet', 'done': False},
-    ]
+    habits_list = fetch_habits()
     
     def delete_habit(e, habit_title):
         habit = next((hl for hl in habits_list if hl['title'] == habit_title), None)
@@ -44,27 +73,30 @@ def main(page: ft.Page):
         refresh_habits_ui()
 
     def refresh_habits_ui():
-        # Atualiza a UI para refletir as mudanças na lista de hábitos.
+        # Obter os hábitos do banco de dados
+        habits_list = fetch_habits()
+        
+        # Atualizar a interface do usuário com os novos dados
         habits.content.controls = [
             ft.Row(
                 controls=[
                     ft.Checkbox(
-                        label=hl['title'],
-                        value=hl['done'],
-                        on_change=change
+                        label=habit[1],  # habit[1] é o título do hábito
+                        value=bool(habit[2]),  # habit[2] é o status 'done', convertido para bool
+                        on_change=lambda e, id=habit[0]: change(e, id)  # Adicione a lógica de mudança aqui
                     ),
                     ft.IconButton(
                         icon=ft.icons.EDIT,
                         icon_color=ft.colors.BLACK,
-                        on_click=lambda e, hl=hl: edit_habit(e, hl['title'])
+                        on_click=lambda e, id=habit[0]: edit_habit(e, id)  # Implemente a lógica de edição aqui
                     ),
                     ft.IconButton(
                         icon=ft.icons.DELETE,
                         icon_color=ft.colors.BLACK,
-                        on_click=lambda e, hl=hl['title']: delete_habit(e, hl)
+                        on_click=lambda e, id=habit[0]: delete_habit(e, id)  # Implemente a lógica de exclusão aqui
                     ) 
                 ]
-            ) for hl in habits_list
+            ) for habit in habits_list
         ]
         habits.update()
 
@@ -83,35 +115,14 @@ def main(page: ft.Page):
         progress_text.update()
 
     def add_habit(e):
-        habits_list.append({'title': e.control.value, 'done': False})
-        habits.content.controls = [
-           ft.Row(
-                controls = [
-                    ft.Checkbox(
-                        label=hl['title'], 
-                        value=hl['done'], 
-                        on_change=change
-                    ),
-                    ft.IconButton(
-                        icon=ft.icons.EDIT,
-                        icon_color=ft.colors.BLACK,
-                        on_click=lambda e, hl=hl: 
-                            edit_habit(e, hl['title'])
-                    ),
-                    ft.IconButton(
-                        icon=ft.icons.DELETE,
-                        icon_color=ft.colors.BLACK,
-                        on_click=lambda e, hl=hl['title']: delete_habit(e, hl)
-                    )    
-                ]
-            )for hl in habits_list
-        ]
-        habits.update()
-
+        conn = sqlite3.connect('habits.db')
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO habits (title, done) VALUES (?, ?)', (e.control.value, 0))
+        conn.commit()
+        conn.close()
+        refresh_habits_ui()
         e.control.value = ''
         e.control.update()
-        change()
-
 
     layout = ft.Column(
         expand=True,
@@ -156,19 +167,19 @@ def main(page: ft.Page):
                         ft.Row(
                             controls = [
                                 ft.Checkbox(
-                                    label=hl['title'], 
-                                    value=hl['done'], 
+                                    label=hl[1], 
+                                    value=hl[2], 
                                     on_change=change
                                 ),
                                 ft.IconButton(
                                     icon=ft.icons.EDIT,
                                     icon_color=ft.colors.BLACK,
-                                    on_click=lambda e, hl=hl: edit_habit(e, hl['title'])
+                                    
                                 ),
                                 ft.IconButton(
                                     icon=ft.icons.DELETE,
                                     icon_color=ft.colors.BLACK,
-                                    on_click=lambda e, hl=hl['title']: delete_habit(e, hl)
+                                    
                                 )    
                             ]
                         )for hl in habits_list
