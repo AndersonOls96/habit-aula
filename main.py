@@ -70,17 +70,24 @@ def main(page: ft.Page):
         habit = cursor.fetchone()
             
         if habit is not None:
-            # Substitui o Checkbox e o IconButton pelo TextField para edição.
-            index = habits_list.index(habit)
-            habits.content.controls[index] = ft.Row(
-                controls=[
-                    ft.TextField(
-                        value=habit[1],
-                        on_submit=lambda e, hl=habit_id: update_habit_title(e, hl),
-                        autofocus=True,
-                    )
-                ]
-            )
+            # Encontra o índice do hábito na lista com base no ID
+            index = 0
+            for i, h in enumerate(habits_list):
+                if h[0] == habit_id:  # Compara o ID do hábito
+                    index = i
+                    break
+            
+            if index is not None:
+                # Substituir o checkbox por um TextField
+                habits.content.controls[index] = ft.Row(
+                    controls=[
+                        ft.TextField(
+                            value=habit[1],
+                            on_submit=lambda e, hl=habit_id: update_habit_title(e, hl),
+                            autofocus=True,
+                        )
+                    ]
+                )
             habits.update()
 
     def update_habit_title(e, habit):
